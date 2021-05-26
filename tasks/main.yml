@@ -1,0 +1,159 @@
+#Create Tomcat Volumes
+- name: Create Tomcat Log Volume
+  docker_volume:
+    name: "{{ tomcat_log_volume_name }}"
+
+- name: Create Tomcat Work Volume
+  docker_volume:
+    name: "{{ tomcat_work_volume_name }}"
+
+- name: Create Tomcat Catalina Volume
+  docker_volume:
+    name: "{{ tomcat_catalina_volume_name }}"
+
+- name: Create Tomcat Temp Volume
+  docker_volume:
+    name: "{{ tomcat_temp_volume_name }}"
+
+- name: build iiq image
+  docker_image:
+    name: "{{ iiq_image_name }}"
+    tag: sandbox
+    state: present
+    source: build
+    force_source: "{{ rebuild | ternary ('yes','no') }}"
+    build:
+      path: "{{ docker_build_context }}"
+      dockerfile: sandbox/Dockerfile
+      pull: no
+
+- name: Deploy IIQ Container to initialize database
+  when: orchestrate
+  docker_container:
+    name: "{{ iiq_container_name }}"
+    image: "{{ iiq_image_name }}:sandbox"
+    published_ports:
+      - "{{ iiq_app_port }}:8080"
+    env:
+      JAVA_OPTS: "{{ java_opts }}"
+    volumes:
+      - '{{ playbook_dir }}/iiqdata:/iiqdata'
+      - '{{ tomcat_log_volume_name }}:/usr/local/tomcat/logs'
+      - '{{ tomcat_work_volume_name }}:/usr/local/tomcat/work'
+      - '{{ tomcat_catalina_volume_name }}:/usr/local/tomcat/conf/Catalina'
+      - '{{ tomcat_temp_volume_name }}:/usr/local/tomcat/temp'
+    networks:
+      - name: "{{network_name}}"
+    network_mode: "{{network_name}}"
+    command: jshell
+    interactive: yes
+    hostname: iiqappserver
+    container_default_behavior: compatibility
+
+- name: add iiq image to inventory
+  add_host:
+    name: "{{ iiq_container_name }}"
+    ansible_connection: docker
+
+- name: Wait for Database
+  when: orchestrate
+  delegate_to: "{{ iiq_container_name }}"
+  wait_for:
+    host: "{{ db_container_name }}"
+    port: 3306
+    delay: 5
+    timeout: 30
+    state: started
+    msg: "MySQL Port is not listining. retrying"
+  register: dbup
+
+- name: Create IdentityIQ Database
+  delegate_to: "{{ iiq_container_name }}"
+  when: dbup and created_db_volume.changed and orchestrate
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: /usr/local/tomcat/webapps/identityiq/WEB-INF/database/create_identityiq_tables-{{ iiq_version }}.{{ db_type }}
+    login_user: "root"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
+  register: created_iiq_database
+
+- name: Create IdentityIQ Plugin Database
+  delegate_to: "{{ iiq_container_name }}"
+  when: dbup and created_db_volume.changed and orchestrate
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: /usr/local/tomcat/webapps/identityiq/WEB-INF/database/plugins/create_identityiq_plugins_db.{{ db_type }}
+    login_user: "root"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
+  register: created_plugin_database
+
+- name: Apply Custom Database Extensions
+  delegate_to: "{{ iiq_container_name }}"
+  when: dbup and orchestrate
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: /usr/local/tomcat/webapps/identityiq/WEB-INF/database/add_identityiq_extensions.{{ db_type }}
+    login_user: "root"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
+    force: true
+
+- name: import stock IIQ xml
+  delegate_to: "{{ iiq_container_name }}"
+  when: created_iiq_database.changed and orchestrate
+  shell: "echo 'import init.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console"
+
+
+- name: Patch IIQ Database
+  delegate_to: "{{ iiq_container_name }}"
+  when: created_iiq_database.changed and orchestrate
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: /usr/local/tomcat/webapps/identityiq/WEB-INF/database/upgrade_identityiq_tables-{{ iiq_version }}{{ iiq_patch_version }}.{{ db_type }}
+    login_user: "root"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
+
+- name: patch IIQ app
+  delegate_to: "{{ iiq_container_name }}"
+  when: created_iiq_database.changed and orchestrate
+  command: /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq patch {{ iiq_version }}{{ iiq_patch_version }}
+
+
+- name: Import AP config files
+  delegate_to: "{{ iiq_container_name }}"
+  when: created_iiq_database.changed and orchestrate and deploy_ap
+  shell: "echo 'import init-acceleratorpack.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console"
+
+- name: Import custom config files
+  delegate_to: "{{ iiq_container_name }}"
+  when: dbup
+  shell: "echo 'import sp.init-custom.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console"
+
+- name: deploy iiq
+  when: dbup and start_app
+  docker_container:
+    name: "{{ iiq_container_name }}"
+    image: "{{ iiq_image_name }}:sandbox"
+    published_ports:
+      - "{{ iiq_app_port }}:8080"
+    env:
+      JAVA_OPTS: "{{ java_opts }}"
+    volumes:
+      - '{{ iiq_data_dir }}:/iiqdata'
+      - '{{ tomcat_log_volume_name }}:/usr/local/tomcat/logs'
+      - '{{ tomcat_work_volume_name }}:/usr/local/tomcat/work'
+      - '{{ tomcat_catalina_volume_name }}:/usr/local/tomcat/conf/Catalina'
+      - '{{ tomcat_temp_volume_name }}:/usr/local/tomcat/temp'
+    networks:
+      - name: "{{network_name}}"
+    network_mode: "{{network_name}}"
+    restart: yes
+    hostname: iiqappserver
+    container_default_behavior: compatibility
