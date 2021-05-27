@@ -24,6 +24,10 @@ Name of the dockder volume for the catalina volume.  Usually overriden in the fo
 
     tomcat_temp_volume_name: sandbox_iiq_tomcat_temp
 
+Name of the docker volume for the tomcat temporary logs.  Usually overriden in the format of <company name>_iiq_tomcat_temp
+
+    network_name: sandbox_iiq
+
 Name of the docker network to attach the generated containers to.  Usually overriden in the format of <company name>_iiq
 
     docker_build_context: ../
