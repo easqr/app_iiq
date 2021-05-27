@@ -34,11 +34,19 @@ Name of the docker network to attach the generated containers to.  Usually overr
 
 Location of the Docker build context.
 
+    docker_file: sandbox/Dockerfile
+
+Location of the Docker file.  If path is relative, **it must be relative to the build context**
+
     iiq_image_name: sandbox-iiq
 
 Name of the docker image to build.  Usually overriden in the format of <company name>-iiq
 
-    iiq_container_name: sandbox-iiq
+    iiq_image_tag: sandbox
+
+Tag for the docker image.
+
+    iiq_container_name: sandbox-iiq:sandbox
 
 Name of the generated docker container.  Usually overriden in the format of <company name>-iiq
 

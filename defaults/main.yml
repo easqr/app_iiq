@@ -16,8 +16,14 @@ network_name: sandbox_iiq
 #Location of the Docker build context.
 docker_build_context: ../
 
+#Location of the Docker file.  If path is relative, it must be relative to the build context
+docker_file: sandbox/Dockerfile
+
 #Name of the docker image to build.  Usually overriden in the format of <company name>-iiq
-iiq_image_name: sandbox-iiq
+iiq_image_name: sandbox-iiq:sandbox
+
+#Tag for the docker image.
+iiq_image_tag: sandbox
 
 #Name of the generated docker container.  Usually overriden in the format of <company name>-iiq
 iiq_container_name: sandbox-iiq

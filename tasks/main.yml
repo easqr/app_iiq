@@ -18,20 +18,20 @@
 - name: build iiq image
   docker_image:
     name: "{{ iiq_image_name }}"
-    tag: sandbox
+    tag: "{{ iiq_image_tag }}"
     state: present
     source: build
     force_source: "{{ rebuild | ternary ('yes','no') }}"
     build:
       path: "{{ docker_build_context }}"
-      dockerfile: sandbox/Dockerfile
+      dockerfile: "{{ docker_file }}"
       pull: no
 
 - name: Deploy IIQ Container to initialize database
   when: orchestrate
   docker_container:
     name: "{{ iiq_container_name }}"
-    image: "{{ iiq_image_name }}:sandbox"
+    image: "{{ iiq_image_name }}:{{ iiq_image_tag }}"
     published_ports:
       - "{{ iiq_app_port }}:8080"
     env:
@@ -140,7 +140,7 @@
   when: dbup and start_app
   docker_container:
     name: "{{ iiq_container_name }}"
-    image: "{{ iiq_image_name }}:sandbox"
+    image: "{{ iiq_image_name }}:{{ iiq_image_tag }}"
     published_ports:
       - "{{ iiq_app_port }}:8080"
     env:
