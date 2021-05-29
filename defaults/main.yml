@@ -56,7 +56,7 @@ db_type: mysql
 network_db_port: 3306
 
 #Database admin user
-db_admin_user: sa
+db_admin_user: root
 
 #Name of the Database container.  Usually overriden in the format of <company name>_iiq_db
 db_container_name: sandbox_iiq_db
