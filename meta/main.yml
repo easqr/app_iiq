@@ -1,5 +1,5 @@
 galaxy_info:
-  role_name: app_iiq
+  role_name: iiq_app
   author: Eli Anderson
   description: Deploys a docker instance of IdentityIQ to be used for Sandbox development
   company: EA Squared, LLC

@@ -78,6 +78,22 @@ Flag to determine if orchastration activities should take place.  Useful if the 
 
 Flag to determine if the accelerator pack is being installed.  
 
+    db_type: mysql
+
+Database type to deploy.  Valid values are mysql and sqlserver
+
+    network_db_port: 3306
+
+Port number for the database on the Docker network.  This will be the port actually configured on the database, not what is chosed to be exposed
+
+    db_admin_user: sa
+
+Database admin user
+
+    db_container_name: sandbox_iiq_db
+
+Name of the Database container.  Usually overriden in the format of <company name>_iiq_db
+
 ## Dependencies
 
 None.

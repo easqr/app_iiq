@@ -1,0 +1,52 @@
+- name: Create IdentityIQ Database
+  delegate_to: "{{ iiq_container_name }}"
+  when: dbup and created_db_volume.changed and orchestrate
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: /usr/local/tomcat/webapps/identityiq/WEB-INF/database/create_identityiq_tables-{{ iiq_version }}.{{ db_type }}
+    login_user: "root"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
+  register: created_iiq_database
+
+- name: Create IdentityIQ Plugin Database
+  delegate_to: "{{ iiq_container_name }}"
+  when: dbup and created_db_volume.changed and orchestrate
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: /usr/local/tomcat/webapps/identityiq/WEB-INF/database/plugins/create_identityiq_plugins_db.{{ db_type }}
+    login_user: "root"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
+  register: created_plugin_database
+
+- name: Apply Custom Database Extensions
+  delegate_to: "{{ iiq_container_name }}"
+  when: dbup and orchestrate
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: /usr/local/tomcat/webapps/identityiq/WEB-INF/database/add_identityiq_extensions.{{ db_type }}
+    login_user: "root"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
+    force: true
+
+- name: import stock IIQ xml
+  delegate_to: "{{ iiq_container_name }}"
+  when: created_iiq_database.changed and orchestrate
+  shell: "echo 'import init.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console"
+
+
+- name: Patch IIQ Database
+  delegate_to: "{{ iiq_container_name }}"
+  when: created_iiq_database.changed and orchestrate
+  community.mysql.mysql_db:
+    name: all
+    state: import
+    target: /usr/local/tomcat/webapps/identityiq/WEB-INF/database/upgrade_identityiq_tables-{{ iiq_version }}{{ iiq_patch_version }}.{{ db_type }}
+    login_user: "root"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
