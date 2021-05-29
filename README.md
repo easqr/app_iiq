@@ -1,4 +1,4 @@
-# Ansible Role: app_iiq
+# Ansible Role: iiq_app
 Ansible role to deploy IIQ with a Docker container
 
 ## Requirements
