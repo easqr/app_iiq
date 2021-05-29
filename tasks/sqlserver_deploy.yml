@@ -2,11 +2,11 @@
   delegate_to: "{{ iiq_container_name }}"
   when: dbup and created_db_volume.changed
   command: /opt/mssql-tools/bin/sqlcmd -S {{ db_container_name }} -U {{db_admin_user}} -P {{ db_admin_password }} -Q "CREATE DATABASE identityiq;CREATE LOGIN [identityiq] WITH PASSWORD='identityiq',CHECK_POLICY=OFF,DEFAULT_DATABASE=identityiq;CREATE DATABASE identityiqPlugin;CREATE LOGIN [identityiqPlugin] WITH PASSWORD='identityiqPlugin',CHECK_POLICY=OFF,DEFAULT_DATABASE=identityiqPlugin;"
-  register: created_databases
+  register: created_iiq_database
 
 - name: Create IdentityIQ Database Schema and Tables
   delegate_to: "{{ iiq_container_name }}"
-  when: created_databases.changed
+  when: created_iiq_database.changed
   command: /opt/mssql-tools/bin/sqlcmd -S {{ db_container_name }} -U {{db_admin_user}} -P {{ db_admin_password }} -X -i webapps/identityiq/WEB-INF/database/create_identityiq_tables-{{ iiq_version }}.{{ db_type }}
   register: created_schema
 
