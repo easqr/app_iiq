@@ -13,7 +13,7 @@ galaxy_info:
   # - CC-BY
   license: license (GPLv2, CC-BY, etc)
 
-  min_ansible_version: 1.2
+  min_ansible_version: 2.10
 
   galaxy_tags: []
     # List tags for your role here, one per line. A tag is a keyword that describes
