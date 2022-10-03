@@ -1,4 +1,16 @@
-- name: Create IdentityIQ Database
+- name: Create IIQ Databases
+  delegate_to: "{{ iiq_container_name }}"
+  when: dbup and created_db_volume.changed and orchestrate
+  community.mysql.mysql_db:
+    name:
+      - identityiq
+      - identityiqPlugin
+    state: present
+    login_user: "{{ db_admin_user }}"
+    login_password: "{{ db_admin_password }}"
+    login_host: "{{ db_container_name }}"
+
+- name: Initialize IdentityIQ Database
   delegate_to: "{{ iiq_container_name }}"
   when: dbup and created_db_volume.changed and orchestrate
   community.mysql.mysql_db:
@@ -10,7 +22,7 @@
     login_host: "{{ db_container_name }}"
   register: created_iiq_database
 
-- name: Create IdentityIQ Plugin Database
+- name: Initialize IdentityIQ Plugin Database
   delegate_to: "{{ iiq_container_name }}"
   when: dbup and created_db_volume.changed and orchestrate
   community.mysql.mysql_db:
