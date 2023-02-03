@@ -45,7 +45,7 @@
     networks:
       - name: "{{network_name}}"
     network_mode: "{{network_name}}"
-    command: jshell
+    command: bash
     interactive: yes
     hostname: iiqappserver
     container_default_behavior: compatibility
