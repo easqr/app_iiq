@@ -9,7 +9,7 @@
     login_user: "{{ db_admin_user }}"
     login_password: "{{ db_admin_password }}"
     login_host: "{{ db_container_name }}"
-    login_port: {{ network_db_port }}
+    login_port: "{{ network_db_port }}"
 
 - name: Initialize IdentityIQ Database
   delegate_to: "{{ iiq_container_name }}"
@@ -21,7 +21,7 @@
     login_user: "{{ db_admin_user }}"
     login_password: "{{ db_admin_password }}"
     login_host: "{{ db_container_name }}"
-    login_port: {{ network_db_port }}
+    login_port: "{{ network_db_port }}"
   register: created_iiq_database
 
 - name: Initialize IdentityIQ Plugin Database
@@ -34,7 +34,7 @@
     login_user: "{{ db_admin_user }}"
     login_password: "{{ db_admin_password }}"
     login_host: "{{ db_container_name }}"
-    login_port: {{ network_db_port }}
+    login_port: "{{ network_db_port }}"
   register: created_plugin_database
 
 - name: Apply Custom Database Extensions
@@ -47,7 +47,7 @@
     login_user: "{{ db_admin_user }}"
     login_password: "{{ db_admin_password }}"
     login_host: "{{ db_container_name }}"
-    login_port: {{ network_db_port }}
+    login_port: "{{ network_db_port }}"
     force: true
 
 - name: import stock IIQ xml
@@ -66,4 +66,4 @@
     login_user: "{{ db_admin_user }}"
     login_password: "{{ db_admin_password }}"
     login_host: "{{ db_container_name }}"
-    login_port: {{ network_db_port }}
+    login_port: "{{ network_db_port }}"
