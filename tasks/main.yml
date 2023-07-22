@@ -33,7 +33,7 @@
     name: "{{ iiq_container_name }}"
     image: "{{ iiq_image_name }}:{{ iiq_image_tag }}"
     published_ports:
-      - "{{ iiq_app_port }}:8080"
+      - "{{ iiq_app_port }}:{{ iiq_docker_port }}"
     env:
       JAVA_OPTS: "{{ java_opts }}"
     volumes:
@@ -93,7 +93,7 @@
     name: "{{ iiq_container_name }}"
     image: "{{ iiq_image_name }}:{{ iiq_image_tag }}"
     published_ports:
-      - "{{ iiq_app_port }}:8080"
+      - "{{ iiq_app_port }}:{{ iiq_docker_port }}"
     env:
       JAVA_OPTS: "{{ java_opts }}"
     volumes:

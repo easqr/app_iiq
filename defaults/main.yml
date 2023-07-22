@@ -31,6 +31,9 @@ iiq_container_name: sandbox-iiq
 #Exposed port for the IIQ Tomcat application.  
 iiq_app_port: 8080
 
+#Port the service is listening on in the Docker image
+iiq_docker_port: 8080
+
 #Folder location of the iiqdata directory to connect to the container
 iiq_data_dir : '{{ playbook_dir }}/iiqdata'
 
@@ -52,7 +55,7 @@ deploy_ap: true
 #Database type to deploy.  Valid values are mysql and sqlserver
 db_type: mysql
 
-#Port number for the database on the Docker network.  This will be the port actually configured on the database, not what is chosed to be exposed
+#Port number for the database on the Docker network.  This will be the port actually configured on the database, not what is exposed
 network_db_port: 3306
 
 #Database admin user
@@ -63,3 +66,6 @@ db_container_name: sandbox_iiq_db
 
 #Default value for created_db_volume variable
 created_db_volume: false
+
+#Default oracle connection name
+oracle_connection: /FREEPDB1
