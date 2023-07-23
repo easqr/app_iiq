@@ -69,3 +69,6 @@ created_db_volume: false
 
 #Default oracle connection name
 oracle_connection: /FREEPDB1
+
+#Default oracle ddl
+oracle_ddl: /iiqdata/init_oracle.sql

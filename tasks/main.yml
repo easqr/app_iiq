@@ -73,13 +73,13 @@
 
 - name: patch IIQ app
   delegate_to: "{{ iiq_container_name }}"
-  when: created_iiq_database.changed and orchestrate
+  when: created_schema.changed and orchestrate
   command: /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq patch {{ iiq_version }}{{ iiq_patch_version }}
 
 
 - name: Import AP config files
   delegate_to: "{{ iiq_container_name }}"
-  when: created_iiq_database.changed and orchestrate and deploy_ap
+  when: created_schema.changed and orchestrate and deploy_ap
   shell: "echo 'import init-acceleratorpack.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console"
 
 - name: Import custom config files
