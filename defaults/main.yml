@@ -35,7 +35,7 @@ iiq_app_port: 8080
 iiq_docker_port: 8080
 
 #Folder location of the iiqdata directory to connect to the container
-iiq_data_dir : '{{ playbook_dir }}/iiqdata'
+iiq_data_dir: '{{ playbook_dir }}/iiqdata'
 
 #Java options for the Tomcat instance
 java_opts: -Xmx2048m -Xms2048m -XX:+UseG1GC -Dsailpoint.debugPages=true -Duser.timezone=UTC
