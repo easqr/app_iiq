@@ -1,4 +1,17 @@
-#Create Tomcat Volumes
+#Load or build the IIQ image.  If the rebuild variable has a value of "yes" the image will be rebuilt
+- name: build iiq image
+  docker_image:
+    name: "{{ iiq_image_name }}"
+    tag: "{{ iiq_image_tag }}"
+    state: present
+    source: build
+    force_source: "{{ rebuild | ternary ('yes','no') }}"
+    build:
+      path: "{{ docker_build_context }}"
+      dockerfile: "{{ docker_file }}"
+      pull: no
+
+#Create the Tomcat Volumes for the IIQ container if they do not already exist
 - name: Create Tomcat Log Volume
   docker_volume:
     name: "{{ tomcat_log_volume_name }}"
@@ -15,18 +28,8 @@
   docker_volume:
     name: "{{ tomcat_temp_volume_name }}"
 
-- name: build iiq image
-  docker_image:
-    name: "{{ iiq_image_name }}"
-    tag: "{{ iiq_image_tag }}"
-    state: present
-    source: build
-    force_source: "{{ rebuild | ternary ('yes','no') }}"
-    build:
-      path: "{{ docker_build_context }}"
-      dockerfile: "{{ docker_file }}"
-      pull: no
 
+#Initialize IIQ database and import stock configurations
 - name: Deploy IIQ Container to initialize database
   when: orchestrate
   docker_container:
@@ -64,27 +67,27 @@
     delay: 5
     timeout: 30
     state: started
-    msg: "Database Port is not listining. retrying"
+    msg: "Database Port is not listening. retrying"
   register: dbup
 
 #Run database specific deployment actions
 - name: Create and Patch IIQ Databases
+  when: init_iiq_db and orchestrate
   include_tasks: "{{ db_type }}_deploy.yml"
 
 - name: patch IIQ app
   delegate_to: "{{ iiq_container_name }}"
-  when: created_schema.changed and orchestrate
+  when: init_iiq_db and orchestrate
   command: /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq patch {{ iiq_version }}{{ iiq_patch_version }}
-
 
 - name: Import AP config files
   delegate_to: "{{ iiq_container_name }}"
-  when: created_schema.changed and orchestrate and deploy_ap
+  when:  init_iiq_db and orchestrate and deploy_ap
   shell: "echo 'import init-acceleratorpack.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console"
 
 - name: Import custom config files
   delegate_to: "{{ iiq_container_name }}"
-  when: dbup
+  when: dbup and (init_iiq_db or rebuild)
   shell: "echo 'import sp.init-custom.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console"
 
 - name: deploy iiq

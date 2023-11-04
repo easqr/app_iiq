@@ -1,6 +1,6 @@
 - name: Create IIQ Databases
   delegate_to: "{{ iiq_container_name }}"
-  when: dbup and created_db_volume.changed and orchestrate
+  when: dbup and init_iiq_db and orchestrate
   community.mysql.mysql_db:
     name:
       - identityiq
@@ -13,7 +13,7 @@
 
 - name: Initialize IdentityIQ Database
   delegate_to: "{{ iiq_container_name }}"
-  when: dbup and created_db_volume.changed and orchestrate
+  when: dbup and init_iiq_db and orchestrate
   community.mysql.mysql_db:
     name: all
     state: import
@@ -26,7 +26,7 @@
 
 - name: Initialize IdentityIQ Plugin Database
   delegate_to: "{{ iiq_container_name }}"
-  when: dbup and created_db_volume.changed and orchestrate
+  when: dbup and init_iiq_db and orchestrate
   community.mysql.mysql_db:
     name: all
     state: import
@@ -39,7 +39,7 @@
 
 - name: Apply Custom Database Extensions
   delegate_to: "{{ iiq_container_name }}"
-  when: dbup and orchestrate
+  when: dbup and init_iiq_db and orchestrate
   community.mysql.mysql_db:
     name: all
     state: import
@@ -52,13 +52,13 @@
 
 - name: import stock IIQ xml
   delegate_to: "{{ iiq_container_name }}"
-  when: created_schema.changed and orchestrate
+  when: init_iiq_db and orchestrate
   shell: "echo 'import init.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console"
 
 
 - name: Patch IIQ Database
   delegate_to: "{{ iiq_container_name }}"
-  when: created_schema.changed and orchestrate
+  when: init_iiq_db and orchestrate
   community.mysql.mysql_db:
     name: all
     state: import

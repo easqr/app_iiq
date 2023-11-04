@@ -50,7 +50,10 @@ start_app: true
 orchestrate: true
 
 #Flag to determine if the accelerator pack is being installed.  
-deploy_ap: true
+deploy_ap: false
+
+#Flag to determine if the IIQ database needs to be initialized.  This is generally only used when creating a new database volume
+init_iiq_db: false
 
 #Database type to deploy.  Valid values are mysql and sqlserver
 db_type: mysql

@@ -1,30 +1,21 @@
 - name: Create IdentityIQ and IdentityIQPlugin Databases
   delegate_to: "{{ iiq_container_name }}"
-  when: dbup and created_db_volume.changed
+  when: dbup and init_iiq_db and orchestrate
   command: /opt/oracle/instantclient_21_11/sqlplus "{{db_admin_user}}/{{ db_admin_password }}@{{ db_container_name }}:{{ network_db_port }}{{ oracle_connection }}" @{{ oracle_ddl }}
   register: created_schema
 
-#- name: Create IdentityIQ Database Schema and Tables
-#  ansible.builtin.set_fact: 
-#    created_schema: created_iiq_database
-#  delegate_to: "{{ iiq_container_name }}"
-#  when: created_iiq_database.changed
-#  command: /opt/oracle/instantclient_21_11/sqlplus "{{db_admin_user}}/{{ db_admin_password }}@{{ db_container_name }}:{{ network_db_port }}{{ oracle_connection }}" @webapps/identityiq/WEB-INF/database/create_identityiq_tables-{{ iiq_version }}.{{ db_type }}
-#  register: created_schema
-
-
 - name: Apply Custom Database Extensions
   delegate_to: "{{ iiq_container_name }}"
-  when: dbup
+  when: dbup and init_iiq_db and orchestrate
   command: /opt/oracle/instantclient_21_11/sqlplus "{{db_admin_user}}/{{ db_admin_password }}@{{ db_container_name }}:{{ network_db_port }}{{ oracle_connection }}" @webapps/identityiq/WEB-INF/database/add_identityiq_extensions.{{ db_type }}
 
 - name: import stock IIQ xml
   delegate_to: "{{ iiq_container_name }}"
-  when: created_schema.changed
+  when: init_iiq_db and orchestrate
   shell: "echo 'import init.xml' | /usr/local/tomcat/webapps/identityiq/WEB-INF/bin/iiq console" 
   
 
 - name: Patch IIQ Database
   delegate_to: "{{ iiq_container_name }}"
-  when: created_schema.changed
+  when: init_iiq_db and orchestrate
   command: /opt/oracle/instantclient_21_11/sqlplus "{{db_admin_user}}/{{ db_admin_password }}@{{ db_container_name }}:{{ network_db_port }}{{ oracle_connection }}" @webapps/identityiq/WEB-INF/database/upgrade_identityiq_tables-{{ iiq_version }}{{ iiq_patch_version }}.{{ db_type }}
